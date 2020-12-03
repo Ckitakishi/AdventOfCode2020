@@ -1,5 +1,11 @@
+import Foundation
+
 public extension String {
+    var componentsByLine: [String] {
+        self.components(separatedBy: .newlines)
+    }
+    
     var intArray: [Int] {
-        self.split(separator: "\n").compactMap { Int($0) }
+        componentsByLine.compactMap { Int($0) }
     }
 }
