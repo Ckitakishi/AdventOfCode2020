@@ -64,9 +64,9 @@ struct Passport {
         var isValid: Bool {
             switch self {
             case .cm(let height):
-                return(150...193).contains(height)
+                return 150...193 ~= height
             case .inch(let height):
-                return (59...76).contains(height)
+                return 59...76 ~= height
             }
         }
     }
@@ -155,9 +155,9 @@ struct PassportProcessor {
     // Part 2
     func numberOfValidPassports2() -> Int {
         passports.reduce(0) { total, passport in
-            guard (1920...2002).contains(passport.byr),
-                  (2010...2020).contains(passport.iyr),
-                  (2020...2030).contains(passport.eyr),
+            guard 1920...2002 ~= passport.byr,
+                  2010...2020 ~= passport.iyr,
+                  2020...2030 ~= passport.eyr,
                   passport.hgt.isValid,
                   passport.hcl.range(
                     of: "#[a-z0-9]",
