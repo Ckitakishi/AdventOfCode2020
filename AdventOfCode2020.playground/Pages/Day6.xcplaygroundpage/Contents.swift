@@ -42,12 +42,11 @@ class GroupAnswer {
     }
 }
 
-let groupAnswers = batchFile
-    .components(separatedBy: "\n\n")
+let groupAnswers = batchFile.componentsByGroup
     .map { GroupAnswer(answers: $0.components(separatedBy: .newlines)) }
 
 // Part 1
-print(groupAnswers.reduce(0) { $0 + $1.count1 })
+print(groupAnswers.reduceCount { $0.count1 })
 
 // Part 2
-print(groupAnswers.reduce(0) { $0 + $1.count2 })
+print(groupAnswers.reduceCount { $1.count2 })

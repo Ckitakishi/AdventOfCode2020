@@ -173,8 +173,7 @@ struct PassportProcessor {
     }
 }
 
-let passportList: [String] = batchFile
-    .components(separatedBy: "\n\n")
+let passportList: [String] = batchFile.componentsByGroup
     .map { $0.replacingOccurrences(of: "\n", with: " ") }
 
 let processor = PassportProcessor(list: passportList)
