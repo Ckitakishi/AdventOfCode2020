@@ -49,4 +49,4 @@ let groupAnswers = batchFile.componentsByGroup
 print(groupAnswers.reduceCount { $0.count1 })
 
 // Part 2
-print(groupAnswers.reduceCount { $1.count2 })
+print(groupAnswers.reduceCount { $0.count2 })
