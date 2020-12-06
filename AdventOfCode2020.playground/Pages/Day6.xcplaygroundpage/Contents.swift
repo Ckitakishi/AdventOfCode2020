@@ -44,13 +44,10 @@ class GroupAnswer {
 
 let groupAnswers = batchFile
     .components(separatedBy: "\n\n")
-    .map {
-        GroupAnswer(answers: $0.components(separatedBy: .newlines))
-    }
+    .map { GroupAnswer(answers: $0.components(separatedBy: .newlines)) }
 
 // Part 1
 print(groupAnswers.reduce(0) { $0 + $1.count1 })
 
 // Part 2
 print(groupAnswers.reduce(0) { $0 + $1.count2 })
-
