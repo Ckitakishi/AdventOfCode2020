@@ -12,4 +12,10 @@ extension String {
     public var intArray: [Int] {
         componentsByLine.compactMap { Int($0) }
     }
+    
+    public var matrix: [[String]] {
+        self.components(separatedBy: .newlines).map { line in
+            line.map { String($0) }
+        }
+    }
 }
