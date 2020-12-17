@@ -46,6 +46,3 @@ print(game1.number(at: 2020))
 // Part 2
 var game2 = MemoryGame(startingNumbers: input.components(separatedBy: ",").compactMap { Int($0) })
 print(game2.number(at: 30_000_000))
-
-
-
