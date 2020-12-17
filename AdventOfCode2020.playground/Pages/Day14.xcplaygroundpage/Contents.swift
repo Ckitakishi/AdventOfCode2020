@@ -58,9 +58,8 @@ class Program {
         func applyMaskToMemoryAddress() -> [(Int, String)] {
             let numbers: [[(Int, String)]] = instructions.map { mem, num in
                 var binaryAddress = String(mem).binaryValueString()
-                let firstOneIndex = binaryAddress.firstIndex(of: "1")?.utf16Offset(in: binaryAddress) ?? 0
-                
-                for index in firstOneIndex..<binaryAddress.count {
+
+                for index in 0..<binaryAddress.count {
                     let strIndex = binaryAddress.index(binaryAddress.startIndex, offsetBy: index)
                     switch mask[strIndex] {
                     case "X", "1":
