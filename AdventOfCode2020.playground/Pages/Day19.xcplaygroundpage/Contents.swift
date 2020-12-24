@@ -129,9 +129,10 @@ struct MessageChecker {
 
 extension NSRegularExpression {
     fileprivate func matchedLength(of string: String) -> Int {
+        // > Use the utf16 count to avoid problems with emoji and similar.
         rangeOfFirstMatch(
             in: string,
-            range: NSRange(location: 0, length: string.count)
+            range: NSRange(location: 0, length: string.utf16.count)
         ).length
     }
 }
