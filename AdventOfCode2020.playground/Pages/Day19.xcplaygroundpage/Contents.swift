@@ -9,6 +9,7 @@ let input =
 9: 14 27 | 1 26
 10: 23 14 | 28 1
 1: "a"
+11: 42 31
 5: 1 14 | 15 1
 19: 14 1 | 14 14
 12: 24 14 | 19 1
@@ -30,12 +31,11 @@ let input =
 21: 14 1 | 1 14
 25: 1 1 | 1 14
 22: 14 14
+8: 42
 26: 14 22 | 1 20
 18: 15 15
 7: 14 5 | 1 21
 24: 14 1
-8: 42 | 42 8
-11: 42 31 | 42 11 31
 
 abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
 bbabbbbaabaabba
@@ -55,11 +55,12 @@ aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba
 """
 
 struct MessageChecker {
-    var rule: String = ""
+    var baseRules: String = ""
     var messages: [String] = []
     
     var completelyMatchCount: Int {
-        let pattern = "^\(rule)$"
+        let pattern = "^\(makeRule(by: baseRules))$"
+        
         return messages.reduceCount { message in
             if message.range(of: pattern, options: .regularExpression, range: nil, locale: nil) != nil {
                 return 1
@@ -69,17 +70,25 @@ struct MessageChecker {
     }
     
     var matchCount: Int {
-        let pattern = "(\(rule))+"
+        let rule42 = "^(\(makeRule(by: baseRules, firstRule: "42")))+"
+        let rule31 = "(\(makeRule(by: baseRules, firstRule: "31")))+$"
+        
+        let regex42 = try! NSRegularExpression(pattern: "^(\(rule42))+")
+        let regex31 = try! NSRegularExpression(pattern: "(\(rule31))+$")
+        
+        let pattern = rule42 + rule31
+        
         return messages.reduceCount { message in
-            if message.range(of: pattern, options: .regularExpression, range: nil, locale: nil) != nil {
+            if message.range(of: pattern, options: .regularExpression) != nil,
+               regex31.matchedLength(of: message) < regex42.matchedLength(of: message) {
                 return 1
             }
             return 0
         }
     }
     
-    init(baseRules: String, messageList: String, modifiedRule: [String: String] = [:]) {
-        self.rule = makeRule(by: baseRules, modifiedRule: modifiedRule)
+    init(baseRules: String, messageList: String) {
+        self.baseRules = baseRules
         self.messages = messageList.componentsByLine
     }
     
@@ -92,13 +101,9 @@ struct MessageChecker {
         return rulesDic
     }
     
-    func makeRule(by baseRules: String, modifiedRule: [String: String]) -> String {
-        var rulesDic = makeRuleDic(by: baseRules)
-        modifiedRule.forEach { key, value in
-            rulesDic[key] = value
-        }
-        
-        var currentRule = rulesDic["0"] ?? ""
+    func makeRule(by baseRules: String, firstRule: String = "0") -> String {
+        let rulesDic = makeRuleDic(by: baseRules)
+        var currentRule = rulesDic[firstRule] ?? ""
         while currentRule.rangeOfCharacter(from: .decimalDigits) != nil {
             let newRules: [String] = currentRule.components(separatedBy: .whitespaces)
                 .compactMap { component in
@@ -120,29 +125,29 @@ struct MessageChecker {
         
         return currentRule.replacingOccurrences(of: " ", with: "")
     }
-    
-    func udpateDic() {
-        
+}
+
+extension NSRegularExpression {
+    fileprivate func matchedLength(of string: String) -> Int {
+        rangeOfFirstMatch(
+            in: string,
+            range: NSRange(location: 0, length: string.count)
+        ).length
     }
 }
 
 let inputLines = input.componentsByGroup
 
 // Part 1
-//let messageChecker = MessageChecker(baseRules: inputLines[0], messageList: inputLines[1])
-//print(messageChecker.completelyMatchCount)
+let messageChecker = MessageChecker(baseRules: inputLines[0], messageList: inputLines[1])
+print(messageChecker.completelyMatchCount)
 
-// Part 2 - Still in progress
+// Part 2
 // 8 - 42 | 42 42 | 42 42 42 => (42)+
 // 11 - 42 31 | 42 42 31 31 => (42+31)+
 // 42 * n + 31 * (n - m)
 let messageChecker2 = MessageChecker(
     baseRules: inputLines[0],
-    messageList: inputLines[1],
-    modifiedRule: [
-        "0": "42 | 42 31",
-        "8": "42 | 42 8",
-        "11": "42 31 | 42 11 31"
-    ]
+    messageList: inputLines[1]
 )
-print(messageChecker2.completelyMatchCount)
+print(messageChecker2.matchCount)
