@@ -3,7 +3,9 @@
 
 import Foundation
 
-let labels = "389125467"
+let labels = "942387615"
+
+// Part 1
 
 class Cup {
     let label: Int
@@ -16,20 +18,15 @@ class Cup {
 
 class CupLinkedList {
     var currentCup: Cup!
-    let allLabels: Set<Int>
+    let allLabels: [Int]
     
-    init(labels: [Int], until number: Int? = nil) {
-        var allLabels = labels
-        if let number = number {
-            allLabels = labels + Array(labels.count...number)
-        }
-        
-        self.allLabels = Set(allLabels)
+    init(labels: [Int]) {
+        self.allLabels = labels
         
         var previousCup: Cup?
         var cup: Cup!
         
-        allLabels.forEach { label in
+        labels.forEach { label in
             cup = Cup(label: label)
             
             if let previousCup = previousCup {
@@ -62,24 +59,8 @@ class CupLinkedList {
         return components[1] + components[0]
     }
     
-    func simulateMoves2() -> Int {
-        move(steps: 10_000_000)
-        
-        var firstCup: Cup?
-        var curCup = currentCup
-        while firstCup == nil {
-            if curCup?.label == 1 {
-                firstCup = curCup
-            } else {
-                curCup = curCup?.next
-            }
-        }
-        
-        return firstCup!.next!.label * firstCup!.next!.next!.label
-    }
-    
     private func move(steps: Int) {
-        (0..<steps).enumerated().forEach { index, _ in
+        (0..<steps).forEach { _ in
             // 1. Pick up 3 cups
             var nextCup = currentCup
             let pickedUpCups: [Cup] = (0..<3).compactMap { _ in
@@ -91,11 +72,13 @@ class CupLinkedList {
             currentCup.next = nextCup?.next
             
             // 3. Find the destination label
-            let pickedUpLables = Set(pickedUpCups.map { $0.label })
-            let leftLabels = allLabels.subtracting(pickedUpLables)
-            guard let destinationLabel = leftLabels.filter({ $0 < currentCup.label }).max()
-                    ?? leftLabels.max() else {
-                fatalError("?")
+            let pickedUpLabels = Set(pickedUpCups.map { $0.label })
+            var destinationLabel = currentCup.label - 1
+            while pickedUpLabels.contains(destinationLabel) || destinationLabel == 0 {
+                destinationLabel = destinationLabel - 1
+                if destinationLabel < 0 {
+                    destinationLabel = allLabels.count
+                }
             }
             
             // 4. Find the destination cup
@@ -119,10 +102,77 @@ class CupLinkedList {
     }
 }
 
-// Part 1
 let cupLinkedList = CupLinkedList(labels: labels.compactMap { Int("\($0)") })
 print(cupLinkedList.simulateMoves1())
 
+// Part 2
+
+class CupList {
+    var cups: [Int: Int] = [:]
+    let allLabels: [Int]
+    let firstLabel: Int
+    
+    init(labels: [Int], until number: Int) {
+        self.allLabels = labels + Array((labels.count + 1)...number)
+        self.firstLabel = allLabels.first!
+        
+        var current = allLabels.first!
+        allLabels[1...].forEach { label in
+            cups[current] = label
+            current = label
+        }
+        cups[current] = allLabels.first!
+    }
+    
+    func simulateMoves2() -> Int {
+        move(steps: 10_000_000)
+        let cup1 = cups[1]!
+        return cup1 * cups[cup1]!
+    }
+    
+    func move(steps: Int) {
+        var currentLabel = firstLabel
+        
+        (0..<steps).forEach { _ in
+            // 1. Pick up 3 cups
+            var nextLabel = currentLabel
+            let pickedUpLabels: [Int] = (0..<3).compactMap { _ in
+                nextLabel = cups[nextLabel]!
+                return nextLabel
+            }
+            
+            // 2. Update current cup's next
+            // cups[currentLabel] = cups[nextLabel] is very slow..
+            let next = cups[nextLabel]!
+            cups[currentLabel] = next
+
+            // 3. Find the destination label
+//            let leftLabels = labelSet.subtracting(pickedUpLabels)
+//            guard let destinationLabel = leftLabels.filter({ $0 < currentLabel }).max()
+//                    ?? leftLabels.max() else {
+//                fatalError("?")
+//            }
+            // the above way is very stupid, no need to know the maximum value.
+            
+            var destinationLabel = currentLabel - 1
+            while pickedUpLabels.contains(destinationLabel) || destinationLabel == 0 {
+                destinationLabel = destinationLabel - 1
+                if destinationLabel < 0 {
+                    destinationLabel = allLabels.count
+                }
+            }
+
+            // 4. Update current cup
+            currentLabel = next
+
+            // 5. Insert picked up cups to list
+            let destinationNext = cups[destinationLabel]
+            cups[pickedUpLabels.last!] = destinationNext
+            cups[destinationLabel] = pickedUpLabels.first!
+        }
+    }
+}
+
 // Part 2 - Performance is too bad, need refactoring
-let cupLinkedList2 = CupLinkedList(labels: labels.compactMap { Int("\($0)") }, until: 1_000_000)
+let cupLinkedList2 = CupList(labels: labels.compactMap { Int("\($0)") }, until: 1_000_000)
 print(cupLinkedList2.simulateMoves2())
